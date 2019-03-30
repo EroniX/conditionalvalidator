@@ -10,36 +10,42 @@ import org.apache.commons.beanutils.BeanUtils;
 
 public class ConditionalValidator implements ConstraintValidator<Conditional, Object> {
 
-	private ConditionalType conditionalType;
-	private String selected;
-	private String[] fields;
+	private ConditionalType conditionalFieldType;
+	private String conditionalFieldParam;
+	private String conditionalField;
+	
+	private ConditionalType targetFieldType;
+	private String targetFieldParam;
+	private String targetField;
+	
 	private String message;
-	private String[] values;
 
 	@Override
 	public void initialize(Conditional conditional) {
-		conditionalType = conditional.conditionalType();
-		selected = conditional.selected();
-		fields = conditional.fields();
+		conditionalFieldType = conditional.conditionalFieldType();
+		conditionalFieldParam = conditional.conditionalFieldParam();
+		conditionalField = conditional.conditionalField();
+		
+		targetFieldType = conditional.targetFieldType();
+		targetFieldParam = conditional.targetFieldParam();
+		targetField = conditional.targetField();
+		
 		message = conditional.message();
-		values = conditional.values();
 	}
 
 	@Override
 	public boolean isValid(Object bean, ConstraintValidatorContext context) {
 		boolean valid = true;
 		try {
-			Object actualValue = BeanUtils.getProperty(bean, selected);
-			if (Arrays.asList(values).contains(actualValue)) {
-				for (String field : fields) {
-					Object fieldValue = BeanUtils.getProperty(bean, field);
-					if (!conditionalType.isValid(fieldValue)) {
-						context.disableDefaultConstraintViolation();
-						context.buildConstraintViolationWithTemplate(message)
-							.addPropertyNode(field)
-							.addConstraintViolation();
-						valid = false;
-					}
+			Object conditionalFieldValue = BeanUtils.getProperty(bean, conditionalField);
+			if(conditionalFieldType.check(conditionalFieldValue, conditionalFieldParam)) {
+				Object targetFieldValue = BeanUtils.getProperty(bean, targetField);
+				if(!targetFieldType.check(targetFieldValue, targetFieldParam)) {
+					context.disableDefaultConstraintViolation();
+					context.buildConstraintViolationWithTemplate(message)
+						.addPropertyNode(targetField)
+						.addConstraintViolation();
+					valid = false;
 				}
 			}
 		} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {

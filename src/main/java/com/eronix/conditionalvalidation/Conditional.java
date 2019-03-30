@@ -15,17 +15,16 @@ import javax.validation.Payload;
 @Constraint(validatedBy = { ConditionalValidator.class })
 public @interface Conditional {
 
-	String message() default "The field value is not appropriate.";
-
 	Class<?>[] groups() default {};
-
 	Class<? extends Payload>[] payload() default {};
 
-	String selected();
+	ConditionalType conditionalFieldType();
+	String conditionalFieldParam();
+	String conditionalField();
 
-	ConditionalType conditionalType();
+	ConditionalType targetFieldType();
+	String targetFieldParam();
+	String targetField();
 
-	String[] fields();
-
-	String[] values();
+	String message() default "The field value is not appropriate.";
 }
